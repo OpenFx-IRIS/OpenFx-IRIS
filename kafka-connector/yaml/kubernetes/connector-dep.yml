@@ -5,7 +5,7 @@ metadata:
     app: kafka
     component: kafka-connector
   name: kafka-connector
-  namespace: openfaas
+  namespace: kubesphere-openfx-system
 spec:
   replicas: 1
   selector:
@@ -22,29 +22,14 @@ spec:
     spec:
       containers:
       - name: kafka
-        image: ghcr.io/openfaas/kafka-connector:0.4.1
+        image: cyy92/kafka-connector:latest
         env:
           - name: gateway_url
-            value: "http://gateway.openfaas:8080"
+            value: "10.0.0.202:31113"
           - name: topics
             value: "faas-request,"
-          - name: print_response
-            value: "true"
-          - name: print_response_body
-            value: "true"
-          - name: basic_auth
-            value: "true"
-          - name: secret_mount_path
-            value: "/var/secrets/"
           - name: topic_delimiter
             value: ","
           - name: asynchronous_invocation
             value: "true"
-        volumeMounts:
-            - name: auth
-              readOnly: true
-              mountPath: "/var/secrets/"
-      volumes:
-      - name: auth
-        secret:
-          secretName: basic-auth
+       

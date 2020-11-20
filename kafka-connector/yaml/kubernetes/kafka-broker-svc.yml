@@ -5,7 +5,7 @@ metadata:
   labels:
     app: kafka
     component: kafka-broker
-  namespace: openfaas
+  namespace: kubesphere-openfx-system
 spec:
   ports:
   - port: 9092

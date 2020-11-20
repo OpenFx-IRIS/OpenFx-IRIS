@@ -5,7 +5,7 @@ metadata:
   labels:
     app: kafka
     component: zookeeper
-  namespace: openfaas
+  namespace: kubesphere-openfx-system
 spec:
   ports:
   - port: 2181

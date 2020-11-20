@@ -5,7 +5,7 @@ metadata:
     app: kafka
     component: zookeeper
   name: zookeeper
-  namespace: openfaas
+  namespace: kubesphere-openfx-system
 spec:
   replicas: 1
   selector:
