@@ -18,8 +18,8 @@ if [ "$1" ]; then
 fi
 
 if [ -z "$NAMESPACE" ]; then
-    NAMESPACE="openfaas"
+    NAMESPACE="kubesphere-openfx-system"
 fi
 
-docker build -t $NAMESPACE/kafka-connector:$TAG . -f $dockerfile --no-cache
+docker build -t cyy92/kafka-connector:$TAG . -f $dockerfile --no-cache
 #(cd yaml && docker service rm kafka_connector ; docker stack deploy kafka -c connector-swarm.yml)

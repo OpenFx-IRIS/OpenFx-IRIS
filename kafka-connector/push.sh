@@ -1,9 +1,11 @@
 #!/bin/sh
+export TAG="latest"
+
 set -e
 
 if [ -z "$NAMESPACE" ]; then
-    NAMESPACE="openfaas"
+    NAMESPACE="kubesphere-openfx-system"
 fi
 
-docker push $NAMESPACE/kafka-connector:$TAG
+docker push cyy92/kafka-connector:$TAG
 
