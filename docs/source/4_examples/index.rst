@@ -19,15 +19,17 @@ Workshop composition
 +----------------------+----------------------------------------------------------------------------------------------------+
 | Name                 | Details                                                                                            |
 +======================+====================================================================================================+
-| 감정 분석            | python, ``textblob`` 를 활용한 텍스트 기반의 감정 분석 함수                                        |
+| 감정 분석                  | python, ``textblob`` 를 활용한 텍스트 기반의 감정 분석 함수                                                           |
 +----------------------+----------------------------------------------------------------------------------------------------+
-| 이미지 프로세싱      | python, ``opencv``, ``ffmpeg`` 를 활용한 이미지 프로세싱 함수와 이를 위한 사용자 클라이언트 구성   |
+| 이미지 프로세싱            | python, ``opencv``, ``ffmpeg`` 를 활용한 이미지 프로세싱 함수와 이를 위한 사용자 클라이언트 구성                       |
 +----------------------+----------------------------------------------------------------------------------------------------+
-| MQTT Broker 구성     | OpenFx 함수와 IOT 기기 통신을 위한 MQTT Broker 구성                                                |
+| MQTT Broker 구성       | OpenFx 함수와 IOT 기기 통신을 위한 MQTT Broker 구성                                                                  |
 +----------------------+----------------------------------------------------------------------------------------------------+
-| 크롤링 봇            | python 을 활용한 크롤링 함수                                                                       |
+| 크롤링 봇                 | python 을 활용한 크롤링 함수                                                                                            |
 +----------------------+----------------------------------------------------------------------------------------------------+
-| Json Unmarshalling   | Golang Json 형식의 데이터 처리 함수                                                                |
+| Json Unmarshalling   | Golang Json 형식의 데이터 처리 함수                                                                                    |
++----------------------+----------------------------------------------------------------------------------------------------+
+| PySpark in OpenFx    | OpenFx에서 Spark와 MLeap을 활용한 뉴럴 네트워크 예제                                                                   |
 +----------------------+----------------------------------------------------------------------------------------------------+
 
 감정 분석
@@ -726,8 +728,356 @@ Test
     >> 
     {Name:battery sensor Capacity:40 Time:2019-01-21T19:07:28Z}
 
+
 참고
 ^^^^
 
 `Learn Go: Marshal & Unmarshal JSON in Golang
 #21 <https://ednsquare.com/story/learn-go-marshal-unmarshal-json-in-golang------B6LUvY>`__
+
+
+PySpark in OpenFx
+~~~~~~~~~
+
+본 예제는 OpenFx 함수에서 사전에 학습된 neural network의 파이프라인을 Spark에 로드하여 API를 구성하는 예제이다.
+
+
+MLeap
+^^^^^^^^^^^^^^
+`MLeap <https://github.com/combust/mleap>`__ 은 직렬화 포맷이자 머신러닝 파이프라인을 실행하기 위한 엔진이다. MLeap은 스파크, 사이킷런, 텐서플로우의 학습 파이프라인들을 지원하며, 학습된 모델들을 직렬화된 파이프라인인 MLeap 번들로 추출할 수 있다. MLeap 번들에서 직렬화된 파이프라인은 스코어링의 배치처리를 위해 역직렬화를 통해 스파크에 로드될 수 있으며, 실시간 API 서비스를 위해 MLeap 런타임을 그대로 사용할 수도 있다.
+
+Write function
+^^^^^^^^^^^^^^
+
+Init PySpark Example in OpenFx
+''''''''''''''
+::
+
+    $ openfx-cli fn init pyspark --runtime python
+    >>
+    Folder: pyspark created.
+    Function handler created in folder: pyspark/src
+    Rewrite the function handler code in pyspark/src folder
+    Config file written: config.yaml
+
+Set Dockerfile
+''''''''''''''
+본 예제에서는 MLeap 런타임을 스파크에서 구동하여 API 서비스를 만들며, API는 OpenFx의 함수에서 실행된다. 스파크에서 MLeap 런타임을 사용하기 위해서는 자바 아카이브(JAR)로 구섣ㅇ된 여러 의존성 파일이 필요하다. 이를 위해 OpenFx의 Dockerfile에 아래와 같이 필요한 JAR파일을 모두 다운로드 받는다.
+
+::
+
+    RUN mkdir /root/apply-jars
+
+    RUN wget https://repo1.maven.org/maven2/org/json4s/json4s-scalap_2.11/3.5.3/json4s-scalap_2.11-3.5.3.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.11/2.6.7.1/jackson-module-scala_2.11-2.6.7.1.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.0/scala-reflect-2.11.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.0/scala-library-2.11.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.0/scala-compiler-2.11.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.11/2.0/scala-arm_2.11-2.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.1.0/scala-parser-combinators_2.11-1.1.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/bundle/bundle-ml_2.11/0.13.0/bundle-ml_2.11-0.13.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.11/0.9.0-RC1/lenses_2.11-0.9.0-RC1.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/bundle/bundle-hdfs_2.11/0.13.0/bundle-hdfs_2.11-0.13.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-avro_2.11/0.16.0/mleap-avro_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-base_2.11/0.16.0/mleap-base_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-core_2.11/0.16.0/mleap-core_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-databricks-runtime_2.11/0.16.0/mleap-databricks-runtime_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-executor_2.11/0.16.0/mleap-executor_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-runtime_2.11/0.16.0/mleap-runtime_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-serving_2.11/0.16.0/mleap-serving_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-spark_2.11/0.16.0/mleap-spark_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-spark-base_2.11/0.16.0/mleap-spark-base_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-spark-extension_2.11/0.16.0/mleap-spark-extension_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-spark-testkit_2.11/0.16.0/mleap-spark-testkit_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-tensor_2.11/0.16.0/mleap-tensor_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-xgboost-runtime_2.11/0.16.0/mleap-xgboost-runtime_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/dmlc/xgboost4j_2.11/1.0.0/xgboost4j_2.11-1.0.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/dmlc/xgboost4j/0.90/xgboost4j-0.90.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/dmlc/xgboost4j-spark/0.90/xgboost4j-spark-0.90.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/io/spray/spray-json_2.11/1.3.5/spray-json_2.11-1.3.5.jar -P /root/apply-jars
+
+Install Spark
+''''''''''''''
+MLeap을 설치할 준비가 다 되었다면, Scala와 Hadoop, Saprk를 설치하고 환경변수를 설정한다.
+
+::
+
+    RUN wget https://archive.apache.org/dist/spark/spark-2.4.5/spark-2.4.5-bin-hadoop2.7.tgz -P /root/spark && \
+        cd /root/spark && \
+        tar xvzf spark-2.4.5-bin-hadoop2.7.tgz
+
+    RUN mkdir -p /root/scala && \
+        wget www.scala-lang.org/files/archive/scala-2.12.0.deb -P /root/scala && \
+        dpkg -i /root/scala/scala-2.12.0.deb
+
+    ENV SPARK_HOME=/root/spark/spark-2.4.5-bin-hadoop2.7
+    ENV PATH=$SPARK_HOME/bin:$PATH
+    ENV PYSPARK_PYTHON=python3
+
+    RUN export SPARK_HOME && \
+    export PATH && \
+    export PYSPARK_PYTHON
+
+전체 도커파일은 아래와 같다.
+
+::
+    
+    # Arguments for Nvidia-Docker
+    # all combination set in CUDA, cuDNN, Ubuntu is not Incompatible please check REFERENCE OF NVIDIA-DOCKER
+    # REFERENCE OF NVIDIA-DOCKER 
+    # https://hub.docker.com/r/nvidia/cuda/
+
+    # Global arguments registry & additional package
+    ARG ADDITIONAL_PACKAGE
+    ARG REGISTRY
+    ARG PYTHON_VERSION
+
+    # Global arguments for Watcher
+    ARG GRPC_PYTHON_VERSION=1.4.0
+    ARG WATCHER_VERSION=0.1.0
+
+    ARG handler_file=handler.py
+    ARG handler_name=Handler
+    ARG handler_dir=/dcf/handler
+    ARG handler_file_path=${handler_dir}/src/${handler_file}
+
+    # Global arguments for Nvidia-docker
+    ARG CUDA_VERSION=9.0
+    ARG CUDNN_VERSION=7
+    ARG UBUNTU_VERSION=16.04
+
+    # ARG variable was changed after passing `FROM`
+    # So, it need copy other ARG variable
+    ARG CUDA_VERSION_BACKUP=${CUDA_VERSION}
+
+    # == MutiStage Build ==
+    # 1-Stage
+    # Get watcher - if watcher is uploaded on github, remove this line.
+    FROM ${REGISTRY}/watcher:${WATCHER_VERSION}-python3 as watcher
+
+    # Arguments for Watcher
+    ARG GRPC_PYTHON_VERSION
+    ARG handler_dir
+    ARG handler_file
+    ARG handler_name
+    ARG handler_file_path
+
+    # Watcher Setting
+    RUN mkdir -p ${handler_dir}
+    WORKDIR ${handler_dir}
+    COPY . .
+    RUN touch ${handler_dir}/src/__init__.py && \
+        cp -r /dcf/watcher/* ${handler_dir}
+
+    # 2-Stage
+    FROM nvidia/cuda:${CUDA_VERSION}-cudnn${CUDNN_VERSION}-devel-ubuntu${UBUNTU_VERSION}
+
+    ARG DEBIAN_FRONTEND=noninteractive
+
+    # Arguments for Nvidia-Docker
+    ARG CUDA_VERSION
+    ARG CUDNN_VERSION
+    ARG CUDA_VERSION_BACKUP
+
+    #RUN sed -i 's/archive.ubuntu.com/kr.archive.ubuntu.com/g' /etc/apt/sources.list
+    # change mirrors in ubuntu server: us to korea
+    RUN sed -i 's/security.ubuntu.com/ftp.daum.net/g' /etc/apt/sources.list && \
+        sed -i 's/us.archive.ubuntu.com/ftp.daum.net/g' /etc/apt/sources.list && \
+        sed -i 's/archive.ubuntu.com/ftp.daum.net/g' /etc/apt/sources.list
+
+    RUN apt-get update && apt-get install -y --no-install-recommends \
+    	build-essential \
+    	wget \
+	tar \
+	libgomp1 \
+	python-setuptools \
+	libgtk2.0-dev \
+	python${PYTHON_VERSION} \
+	python3-dev \
+	python3-numpy \
+	python3-pip \
+	python3-tk \
+	cmake \
+	unzip \
+	pkg-config \
+	software-properties-common \
+	build-essential \
+	openjdk-8-jre-headless \
+	openjdk-8-jdk \
+	ant \
+	python3 \
+	wget \
+	tar \
+        tree \
+	python3-pip \
+	python3-setuptools \
+	${ADDITIONAL_PACKAGE} \
+	&& rm -rf /var/lib/apt/lists/*
+
+    # Deep learning framework as TensorFlow / PyTorch / MXNet require GPU software library path
+    #ENV LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
+    #ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda-${CUDA_VERSION_BACKUP}/compat/:$LD_LIBRARY_PATH
+    #ENV LD_LIBRARY_PATH=/usr/local/cuda-${CUDA_VERSION_BACKUP}/targets/x86_64-linux/lib:$LD_LIBRARY_PATH
+
+
+    # Pyspark
+    RUN mkdir -p /root/spark
+
+    RUN wget https://archive.apache.org/dist/spark/spark-2.4.5/spark-2.4.5-bin-hadoop2.7.tgz -P /root/spark && \
+        cd /root/spark && \
+        tar xvzf spark-2.4.5-bin-hadoop2.7.tgz
+
+    # Prerequeist
+    RUN mkdir /root/apply-jars
+
+    RUN wget https://repo1.maven.org/maven2/org/json4s/json4s-scalap_2.11/3.5.3/json4s-scalap_2.11-3.5.3.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.11/2.6.7.1/jackson-module-scala_2.11-2.6.7.1.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.0/scala-reflect-2.11.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.0/scala-library-2.11.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.0/scala-compiler-2.11.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/com/jsuereth/scala-arm_2.11/2.0/scala-arm_2.11-2.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.1.0/scala-parser-combinators_2.11-1.1.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/bundle/bundle-ml_2.11/0.13.0/bundle-ml_2.11-0.13.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.11/0.9.0-RC1/lenses_2.11-0.9.0-RC1.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/bundle/bundle-hdfs_2.11/0.13.0/bundle-hdfs_2.11-0.13.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-avro_2.11/0.16.0/mleap-avro_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-base_2.11/0.16.0/mleap-base_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-core_2.11/0.16.0/mleap-core_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-databricks-runtime_2.11/0.16.0/mleap-databricks-runtime_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-executor_2.11/0.16.0/mleap-executor_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-runtime_2.11/0.16.0/mleap-runtime_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-serving_2.11/0.16.0/mleap-serving_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-spark_2.11/0.16.0/mleap-spark_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-spark-base_2.11/0.16.0/mleap-spark-base_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-spark-extension_2.11/0.16.0/mleap-spark-extension_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-spark-testkit_2.11/0.16.0/mleap-spark-testkit_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-tensor_2.11/0.16.0/mleap-tensor_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/combust/mleap/mleap-xgboost-runtime_2.11/0.16.0/mleap-xgboost-runtime_2.11-0.16.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/dmlc/xgboost4j_2.11/1.0.0/xgboost4j_2.11-1.0.0.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/dmlc/xgboost4j/0.90/xgboost4j-0.90.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/ml/dmlc/xgboost4j-spark/0.90/xgboost4j-spark-0.90.jar -P /root/apply-jars && \
+        wget https://repo1.maven.org/maven2/io/spray/spray-json_2.11/1.3.5/spray-json_2.11-1.3.5.jar -P /root/apply-jars 
+
+    # Scala
+    RUN mkdir -p /root/scala && \
+        wget www.scala-lang.org/files/archive/scala-2.12.0.deb -P /root/scala && \
+        dpkg -i /root/scala/scala-2.12.0.deb
+
+    ENV SPARK_HOME=/root/spark/spark-2.4.5-bin-hadoop2.7
+    ENV PATH=$SPARK_HOME/bin:$PATH
+    ENV PYSPARK_PYTHON=python3
+
+    RUN export SPARK_HOME && \
+        export PATH && \
+        export PYSPARK_PYTHON
+
+    # Copy Watcher
+    ARG GRPC_PYTHON_VERSION
+    ARG handler_dir
+    ARG handler_file
+    ARG handler_name
+    ARG handler_file_path
+
+    ENV HANDLER_DIR=${handler_dir}
+    ENV HANDLER_FILE=${handler_file_path}
+    ENV HANDLER_NAME=${handler_name}
+
+    RUN mkdir -p ${HANDLER_DIR}
+    WORKDIR ${HANDLER_DIR}
+    COPY --from=0 ${HANDLER_DIR} .
+    COPY . .
+
+    WORKDIR ${HANDLER_DIR}
+
+    RUN tree -L 2
+
+    RUN python3 -m pip install --upgrade --force-reinstall pip &&\
+        pip3 install wheel>0.25.0 && \
+        pip3 install setuptools && \
+        pip3 install grpcio==${GRPC_PYTHON_VERSION} grpcio-tools==${GRPC_PYTHON_VERSION} && \
+        pip3 install -r requirements.txt --user
+
+    RUN cp -r /root/apply-jars/* /root/spark/spark-2.4.5-bin-hadoop2.7/jars/ && \
+        cp -r /root/apply-jars/* $(python3 -m site --user-site)/pyspark/jars
+
+
+    HEALTHCHECK --interval=1s CMD [ -e /tmp/.lock ] || exit 1
+
+    ENTRYPOINT ["python3"]
+    CMD ["server.py"]
+
+
+Neural network API function(handler.py)
+''''''''''''''
+
+Spark 및 MLeap을 사용할 환경이 모두 준비되었다면, OpenFx 함수 컴포넌트에서 미리 학습된 neural network 가중치 파일을 MLeap을 통해 spark 모델 파이프라인으로 로드하며, 로드된 모델 파이프라인을 통해 요청을 처리하는 API를 작성한다.
+
+먼저 함수 컴포넌트가 구동되면 “NeuralNet”이라는 spark 애플리케이션이 구동된다. API가 호출되면, 기존에 지정된 dataset을 로드하게되며, 이를 train, test 데이터셋으로 분리하여 추론할 준비를 마무리한다. 모델 파이프라인은 이미 학습된 neural_net.zip으로부터 spark 애플리케이션으로 로드한다. 이 때, 기존에 외부에서 학습된 모델 파이프라인은 MLeap을 통해 spark의 파이프파인으로 변경된다. 이렇게 로드된 모델 파이프라인에 test데이터셋을 입력으로 하여 결과를 얻게 되며, 이 결과들의 점수들을 종합하여 정확도를 측정하고 이를 반환한다.
+
+.. code:: python
+
+    from mleap import pyspark
+    from mleap.pyspark.spark_support import SimpleSparkSerializer
+
+    from pyspark import SparkContext, SparkConf
+    from pyspark.sql import SQLContext
+    from pyspark.ml import PipelineModel
+    from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+
+    class Handler:
+        def __init__(self):
+            self.spark_context = SparkContext(appName="NeuralNet")
+            self.sql_context = SQLContext(self.spark_context)
+
+        def __call__(self, req):
+            data = self.sql_context.read.format("libsvm").load("/dcf/handler/src/sample_multiclass_classification_data.txt")
+            splits = data.randomSplit([0.6, 0.4], 1234)
+            train = splits[0]
+            test = splits[1]
+            deserialized_pipeline = PipelineModel.deserializeFromBundle("jar:file:/dcf/handler/src/neural_net.zip")
+            result = deserialized_pipeline.transform(test)
+            predictionAndLabels = result.select("prediction", "label")
+            evaluator = MulticlassClassificationEvaluator(metricName="accuracy")
+            accuracy = "Test set accuracy = " + str(evaluator.evaluate(predictionAndLabels))
+            return accuracy
+
+
+Build function
+^^^^^^^^^^^^^^
+
+::
+
+    $ cd pyspark
+    $ openfx-cli  function build -f config.yaml -v
+    >>
+    Building function (pyspark) ...
+    Sending build context to Docker daemon  8.192kB
+    Step 1/45 : ARG ADDITIONAL_PACKAGE
+    Step 2/45 : ARG REGISTRY
+    Step 3/45 : ARG PYTHON_VERSION
+    ...
+
+Deploy function
+^^^^^^^^^^^^^^
+
+::
+
+    $ openfx-cli fn deploy -f config.yaml
+    >>
+    Pushing: pyspark, Image: keti.asuscomm.com:5000/pyspark in Registry: keti.asuscomm.com:5000 ...
+    Deploying: pyspark ...
+    Attempting update... but Function Not Found. Deploying Function...
+
+Test function
+^^^^^^^^^^^^^^
+
+::
+
+    $ echo "" | openfx-cli function call pyspark
+    >>
+    Test set accuracy = 0.9019607843137255
+
+
+
