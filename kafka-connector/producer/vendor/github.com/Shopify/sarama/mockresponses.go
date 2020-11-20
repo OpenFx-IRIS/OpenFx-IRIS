@@ -552,7 +552,7 @@ func (mr *MockCreateTopicsResponse) For(reqBody versionedDecoder) encoder {
 	res := &CreateTopicsResponse{}
 	res.TopicErrors = make(map[string]*TopicError)
 
-	for topic := range req.TopicDetails {
+	for topic, _ := range req.TopicDetails {
 		res.TopicErrors[topic] = &TopicError{Err: ErrNoError}
 	}
 	return res
@@ -590,7 +590,7 @@ func (mr *MockCreatePartitionsResponse) For(reqBody versionedDecoder) encoder {
 	res := &CreatePartitionsResponse{}
 	res.TopicPartitionErrors = make(map[string]*TopicPartitionError)
 
-	for topic := range req.TopicPartitions {
+	for topic, _ := range req.TopicPartitions {
 		res.TopicPartitionErrors[topic] = &TopicPartitionError{Err: ErrNoError}
 	}
 	return res
@@ -611,7 +611,7 @@ func (mr *MockDeleteRecordsResponse) For(reqBody versionedDecoder) encoder {
 
 	for topic, deleteRecordRequestTopic := range req.Topics {
 		partitions := make(map[int32]*DeleteRecordsResponsePartition)
-		for partition := range deleteRecordRequestTopic.PartitionOffsets {
+		for partition, _ := range deleteRecordRequestTopic.PartitionOffsets {
 			partitions[partition] = &DeleteRecordsResponsePartition{Err: ErrNoError}
 		}
 		res.Topics[topic] = &DeleteRecordsResponseTopic{Partitions: partitions}
