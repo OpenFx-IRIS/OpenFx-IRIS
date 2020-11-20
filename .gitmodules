@@ -1,3 +1,0 @@
-[submodule "kafka-connector"]
-	path = kafka-connector
-	url = https://github.com/openfaas/kafka-connector
