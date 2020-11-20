@@ -14,7 +14,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	cluster "github.com/bsm/sarama-cluster"
-	"github.com/openfaas-incubator/connector-sdk/types"
+	"github.com/kafka-connector/connector-sdk/types"
 )
 
 var saramaKafkaProtocolVersion = sarama.V0_10_2_0
@@ -30,11 +30,9 @@ const (
 )
 
 func main() {
-
-	credentials := types.GetCredentials()
 	config := buildConnectorConfig()
 
-	controller := types.NewController(credentials, config.ControllerConfig)
+	controller := types.NewController(config.ControllerConfig)
 
 	controller.BeginMapBuilder()
 
@@ -44,7 +42,7 @@ func main() {
 	makeConsumer(brokers, config, controller)
 }
 
-func waitForBrokers(brokers []string, config connectorConfig, controller *types.Controller) {
+func waitForBrokers(brokers []string, config connectorConfig, controller types.Controller) {
 
 	var client sarama.Client
 	var err error
@@ -60,12 +58,11 @@ func waitForBrokers(brokers []string, config connectorConfig, controller *types.
 			}
 			fmt.Println("Wait for brokers ("+config.Broker+") to come up.. ", brokers)
 		}
-
 		time.Sleep(1 * time.Second)
 	}
 }
 
-func makeConsumer(brokers []string, config connectorConfig, controller *types.Controller) {
+func makeConsumer(brokers []string, config connectorConfig, controller types.Controller) {
 	//setup consumer
 	cConfig := cluster.NewConfig()
 	cConfig.Version = saramaKafkaProtocolVersion
@@ -135,11 +132,10 @@ func buildConnectorConfig() connectorConfig {
 		log.Fatal(`Provide a list of topics i.e. topics="payment_published,slack_joined"`)
 	}
 
-	gatewayURL := "http://gateway:8080"
+	gatewayURL := "http://10.0.0.202:31113"
 	if val, exists := os.LookupEnv("gateway_url"); exists {
 		gatewayURL = val
 	}
-
 	upstreamTimeout := time.Second * 30
 	rebuildInterval := time.Second * 3
 
