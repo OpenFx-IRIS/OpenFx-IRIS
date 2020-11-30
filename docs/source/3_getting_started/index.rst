@@ -1,7 +1,7 @@
 Getting Started
 ====================================
 
-Learn how to perform specific tasks with Nuclio.
+Let's get started with OpenFx-IRIS
 
 In This Section
 
