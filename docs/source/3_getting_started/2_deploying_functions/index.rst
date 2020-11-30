@@ -327,17 +327,17 @@ Test Function
 함수 배포에 앞서 작성한 함수가 정상적으로 동작하는지 확인하기 위해 로컬
 환경에서 함수 이미지를 실행한다.
 
-\`\`\` $ echo "Hello" \| openfx-cli function run [-f .yaml] >> Running
-image (:/) in local Starting FxWatcher Server ... Call in user's local
-Handler request: Hello
+  ::
 
-Handler reply: Hello [1]+ Stopped echo "Hello" \| openfx-cli function
-run \`\`\`
+      $ echo "Hello" \| openfx-cli function run [-f .yaml] 
+        >> Running image (:/) in local Starting FxWatcher Server ... 
+           Call in user's local Handler request: Hello
 
-    ``--config; -f`` : 함수 설정 파일의 이름; 함수 생성 시 설정했다면
-    해당 파일을 작성한다.
+           Handler reply: Hello [1]+ Stopped echo "Hello" | openfx-cli function run
 
-    *Ctrl + Z를 통해 함수 실행을 중지할 수 있다.*
+``--config; -f`` : 함수 설정 파일의 이름; 함수 생성 시 설정했다면 해당 파일을 작성한다.
+
+*Ctrl + Z를 통해 함수 실행을 중지할 수 있다.*
 
 Deploy Function
 ~~~~~~~~~~~~~~~
