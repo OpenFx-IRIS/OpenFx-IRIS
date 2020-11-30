@@ -21,13 +21,18 @@ Init Function
 
 -  함수 배포를 위한 새 함수 템플릿 생성
 
-``$ openfx-cli function init <FUNCTION NAME> -r <RUNTIME> [-f <YAML FILE NAME>.yaml] [-g <호스트 OS IP>:31113>]   >>    Folder: <FUNCTION NAME> created   Fucntion handler created in folder: <FUNCTION NAME>/src   Rewrite the function handler code in <FUNCTION NAME>/src folder   Config file written: <YAML FILE NAME>.yaml``
+  ::
 
-    ``<FUNCTION NAME>`` : 생성하고자 하는 함수의 이름; 첫문자는 반드시
-    영문 소문자로 작성해야 한다.
+    $ openfx-cli function init <FUNCTION NAME> -r <RUNTIME> [-f <YAML FILE NAME>.yaml] [-g <호스트 OS IP>:31113>]   
+      >>    Folder: <FUNCTION NAME> created   
+            Fucntion handler created in folder: <FUNCTION NAME>/src   
+            Rewrite the function handler code in <FUNCTION NAME>/src folder   
+            Config file written: <YAML FILE NAME>.yaml
 
-    ``--runtime; -r`` : 함수의 런타임 종류; OpenFx에서 지원하는 런타임은
-    모두 가능하다.
+
+  ``<FUNCTION NAME>`` : 생성하고자 하는 함수의 이름; 첫문자는 반드시영문 소문자로 작성해야 한다.
+
+  ``--runtime; -r`` : 함수의 런타임 종류; OpenFx에서 지원하는 런타임은모두 가능하다.
 
     -  OpenFx에서 지원하는 런타임의 종류
     -  Golang
@@ -38,13 +43,9 @@ Init Function
     -  Node.js
     -  Java
 
-    ``--config; -f`` : 함수 설정 파일의 이름; 설정하지 않으면 기본값인
-    ``config.yaml``\ 으로 생성된다.
+  ``--config; -f`` : 함수 설정 파일의 이름; 설정하지 않으면 기본값인 ``config.yaml``\ 으로 생성된다.
 
-    ``--gateway; -g`` : Gateway의 주소와 포트번호; 함수 호출 시 사용하는
-    Gateway의 주소이다. 설정하지 않으면 기본값인
-    ``keti.asuscomm.com:31113``\ 으로 설정되며 사용하고자 하는 IP주소의
-    도메인 설정이 되어있다면 URL로도 사용이 가능하다.
+  ``--gateway; -g`` : Gateway의 주소와 포트번호; 함수 호출 시 사용하는Gateway의 주소이다. 설정하지 않으면 기본값인 ``keti.asuscomm.com:31113``\ 으로 설정되며 사용하고자 하는 IP주소의도메인 설정이 되어있다면 URL로도 사용이 가능하다.
 
 -  함수 템플릿 디렉토리 생성
 
