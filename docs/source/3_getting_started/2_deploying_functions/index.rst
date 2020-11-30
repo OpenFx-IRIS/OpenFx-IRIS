@@ -221,7 +221,8 @@ Ruby
          end
        end
 
-#### CPP
+CPP
+"""
 
 -  handler.cc
 
