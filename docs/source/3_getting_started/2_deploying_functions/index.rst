@@ -333,7 +333,8 @@ Test Function
         >> Running image (:/) in local Starting FxWatcher Server ... 
            Call in user's local Handler request: Hello
 
-           Handler reply: Hello [1]+ Stopped echo "Hello" | openfx-cli function run
+           Handler reply: Hello
+           [1]+ Stopped echo "Hello" | openfx-cli function run
 
 ``--config; -f`` : 함수 설정 파일의 이름; 함수 생성 시 설정했다면 해당 파일을 작성한다.
 
