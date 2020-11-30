@@ -345,8 +345,7 @@ Deploy Function
 
 -  생성된 도커 이미지를 통해 OpenFx에 함수 배포
 
-yaml 파일을 통해 생성된 도커 이미지를 도커 레지스트리에 푸시하고 함수
-컨테이너를 OpenFx에 배포한다.
+    yaml 파일을 통해 생성된 도커 이미지를 도커 레지스트리에 푸시하고 함수컨테이너를 OpenFx에 배포한다.
 
 ``$ openfx-cli function deploy -f <YAML FILE NAME>.yaml -v -g <호스트 OS IP>:31113> [--min <NUMBER>] [--max <NUMBER>] [--registry <REGISTRY IP>:<PORT>] [--replace=<TRUE OR FALSE] [--update=<TRUE OR FALSE>]     >>      Pushing: <FUNCTION NAME>, Image: <REGISTRY IP>:<PORT>/<FUNCTION NAME> in Registry: <REGISTRY IP>:<PORT>...     ...     Deploying: <FUNCTION NAME> ...     Attempting update... but Function Not Found. Deploying Function...     http trigger url: http://<호스트 OS IP>:31113/function/<FUNCTION NAME>``
 
