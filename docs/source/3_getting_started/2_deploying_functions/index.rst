@@ -416,9 +416,7 @@ Function Info
         >>    
         name: <FUNCTION NAME>    image: <REGISTRY IP>:<PORT>/<FUNCTION NAME>    invocationcount: 4    replicas: 1    annotations: {}    availablereplicas: 1    labels:      openfx_fn: <FUNCTION NAME>
 
-    ``--gateway; -g`` : Gateway의 주소; 함수 생성 시 설정한 Gateway의
-    주소를 입력한다. 입력하지 않을 시에는 Gateway의 기본값인
-    ``keti.asuscomm:31113``\ 에 배포된 함수의 정보가 나타난다.
+  ``--gateway; -g`` : Gateway의 주소; 함수 생성 시 설정한 Gateway의 주소를 입력한다. 입력하지 않을 시에는 Gateway의 기본값인 ``keti.asuscomm:31113``\ 에 배포된 함수의 정보가 나타난다.
 
 Function Log
 ~~~~~~~~~~~~
