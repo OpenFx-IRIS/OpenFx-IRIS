@@ -199,7 +199,8 @@ Python 2.7 / 3.6
            # single call
            return req.input
 
-#### Ruby
+Ruby
+""""
 
 -  handler.rb
 
