@@ -347,7 +347,16 @@ Deploy Function
 
     yaml 파일을 통해 생성된 도커 이미지를 도커 레지스트리에 푸시하고 함수컨테이너를 OpenFx에 배포한다.
 
-``$ openfx-cli function deploy -f <YAML FILE NAME>.yaml -v -g <호스트 OS IP>:31113> [--min <NUMBER>] [--max <NUMBER>] [--registry <REGISTRY IP>:<PORT>] [--replace=<TRUE OR FALSE] [--update=<TRUE OR FALSE>]     >>      Pushing: <FUNCTION NAME>, Image: <REGISTRY IP>:<PORT>/<FUNCTION NAME> in Registry: <REGISTRY IP>:<PORT>...     ...     Deploying: <FUNCTION NAME> ...     Attempting update... but Function Not Found. Deploying Function...     http trigger url: http://<호스트 OS IP>:31113/function/<FUNCTION NAME>``
+    ::
+
+        $ openfx-cli function deploy -f <YAML FILE NAME>.yaml -v -g <호스트 OS IP>:31113> [--min <NUMBER>] [--max <NUMBER>] [--registry <REGISTRY IP>:<PORT>] [--replace=<TRUE OR FALSE] [--update=<TRUE OR FALSE>]
+          >> Pushing: <FUNCTION NAME>, Image: <REGISTRY IP>:<PORT>/<FUNCTION NAME> in Registry: <REGISTRY IP>:<PORT>...
+             ...    
+             Deploying: <FUNCTION NAME> 
+             ...     
+             Attempting update... but Function Not Found. 
+             Deploying Function...     
+             http trigger url: http://<호스트 OS IP>:31113/function/<FUNCTION NAME>
 
     ``--config; -f`` : 함수 설정 파일의 이름; 함수 생성 시 설정했다면
     해당 파일을 작성하고 아닐 시에는 기본값인 ``config.yaml``\ 을
