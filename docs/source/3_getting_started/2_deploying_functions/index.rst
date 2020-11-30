@@ -383,7 +383,13 @@ Confirm Function
 
 -  OpenFx에 배포가 완료된 함수의 목록 확인
 
-``$ openfx-cli function list [-g <호스트 OS IP>:31113>]    >>     Function            Image                         Maintainer    Invocations    Replicas    Status    Description    <FUNCTION NAME>     $(repo)/<FUNCTION NAME>                     0              1           Ready``
+
+    ::
+
+        $ openfx-cli function list [-g <호스트 OS IP>:31113>]    
+          >>
+          Function            Image                         Maintainer    Invocations    Replicas    Status    Description    
+          <FUNCTION NAME>     $(repo)/<FUNCTION NAME>                     0              1           Ready
 
     ``--gateway; -g`` : Gateway의 주소; 함수 생성 시 설정한 Gateway의
     주소를 입력한다. 입력하지 않을 시에는 Gateway의 기본값인
