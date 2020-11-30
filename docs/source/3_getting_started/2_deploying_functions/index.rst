@@ -398,7 +398,10 @@ Call Function
 
 -  OpenFx에 배포된 함수 호출
 
-``$ echo "Hello" | openfx-cli function call <FUNCTION NAME> [-g <호스트 OS IP>:31113>]    >>    Hello``
+  ::
+
+    $ echo "Hello" | openfx-cli function call <FUNCTION NAME> [-g <호스트 OS IP>:31113>]    
+      >>    Hello
 
     ``--gateway; -g`` : Gateway의 주소; 함수 생성 시 설정한 Gateway의
     주소를 입력한다. 입력하지 않을 시에는 Gateway의 기본값인
