@@ -2,7 +2,7 @@
 
 #### GitHub 프로젝트 / 소스 코드
 
-OpenFx는 서버리스 오픈소스 프로젝트입니다. 프로젝트와 관련된 소스코드 및 세부 사항은 [OpenFx 깃 페이지](https://github.com/keti-openfx/openfx)에서 확인하세요.
+OpenFx는 서버리스 오픈소스 프로젝트입니다. 프로젝트와 관련된 소스코드 및 세부 사항은 [OpenFx 깃 페이지](https://github.com/keti-openfx/openfx)에서 확인할 수 있다.
 
 
 
