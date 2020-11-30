@@ -52,19 +52,21 @@ Init Function
 새로운 함수를 생성하면 현재 경로 디렉토리 안에 함수 이름과 같은
 디렉토리가 생성된다. 디렉토리의 내부 구조는 다음과 같다.
 
-.
 
-├── .yaml
-├── Dockerfile
-└── src
-​ └── handler.
+  ::
 
-    ``<YAML FILE NAME>.yaml`` : 함수에 대한 정보와 함수의 컨테이너
-    설정값
+    .
+    
+    ├── .yaml
+    ├── Dockerfile
+    └── src
+    ​ └── handler
 
-    ``Dockerfile`` : 함수 컨테이너의 베이스 도커 이미지 파일
+  ``<YAML FILE NAME>.yaml`` : 함수에 대한 정보와 함수의 컨테이너 설정값
 
-    ``src/handler.<RUNTIME>`` : 작성해야 하는 함수 파일
+  ``Dockerfile`` : 함수 컨테이너의 베이스 도커 이미지 파일
+
+  ``src/handler.<RUNTIME>`` : 작성해야 하는 함수 파일
 
 -  .yaml
 
