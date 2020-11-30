@@ -305,17 +305,19 @@ Build Function
 yaml 파일에 작성된 함수 컨테이너의 설정값을 기준으로 함수 이미지를
 빌드한다.
 
-``$ openfx-cli function build -v [-f <YAML FILE NAME>.yaml] [--nocache] [-g <호스트 OS IP>:31113>]   >>    Building function (<FUNCTION NAME>) image ...   Image: <REGISTRY IP>:<PORT>/<FUNCTION NAME> built in local environment.``
+::
 
-    ``--config; -f`` : 함수 설정 파일의 이름; 함수 생성 시 설정했다면
-    해당 파일로 옵션을 추가한다.
+  $ openfx-cli function build -v [-f <YAML FILE NAME>.yaml] [--nocache] [-g <호스트 OS IP>:31113>]
+    >>    Building function (<FUNCTION NAME>) image ...   
+          Image: <REGISTRY IP>:<PORT>/<FUNCTION NAME> built in local environment.
 
-    ``--buildverbose; -v`` : 이미지 빌드 과정을 로그로 출력
+``--config; -f`` : 함수 설정 파일의 이름; 함수 생성 시 설정했다면 해당 파일로 옵션을 추가한다.
 
-    ``--nocache`` : 이미지 빌드에 캐시 미사용
+``--buildverbose; -v`` : 이미지 빌드 과정을 로그로 출력
 
-    ``--gateway; -g`` : Gateway의 주소; 함수 생성 시 설정한 Gateway의
-    주소를 입력한다.
+``--nocache`` : 이미지 빌드에 캐시 미사용
+
+``--gateway; -g`` : Gateway의 주소; 함수 생성 시 설정한 Gateway의 주소를 입력한다.
 
 Test Function
 ~~~~~~~~~~~~~
